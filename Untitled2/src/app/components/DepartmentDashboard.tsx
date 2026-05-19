@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { LogOut, Download, FileSpreadsheet, Users, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { DepartmentAdmin } from './DepartmentAuth';
 import { ApplicationSubmission, getApplicationsByDepartment, getDepartmentStats } from './ApplicationService';
+import { updateApplicationStatus } from './firebaseConfig';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -42,6 +43,30 @@ export default function DepartmentDashboard({ admin, onLogout }: DepartmentDashb
       console.error('خطأ في تحميل الطلبات:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (appId: string, newStatus: 'pending' | 'accepted' | 'rejected') => {
+    try {
+      await updateApplicationStatus(admin.departmentId, appId, newStatus);
+      // تحديث الحالة محلياً بدون إعادة تحميل كاملة
+      setApplications(prev => prev.map(a => a.id === appId ? { ...a, status: newStatus } : a));
+      setStats(prev => {
+        const app = applications.find(a => a.id === appId);
+        if (!app) return prev;
+        const oldStatus = app.status;
+        const updated = { ...prev };
+        if (oldStatus === 'pending') updated.pending = Math.max(0, updated.pending - 1);
+        else if (oldStatus === 'accepted') updated.accepted = Math.max(0, updated.accepted - 1);
+        else if (oldStatus === 'rejected') updated.rejected = Math.max(0, updated.rejected - 1);
+        if (newStatus === 'pending') updated.pending++;
+        else if (newStatus === 'accepted') updated.accepted++;
+        else if (newStatus === 'rejected') updated.rejected++;
+        return updated;
+      });
+    } catch (error) {
+      console.error('خطأ في تحديث الحالة:', error);
+      alert('حدث خطأ أثناء تحديث الحالة');
     }
   };
 
@@ -527,16 +552,21 @@ export default function DepartmentDashboard({ admin, onLogout }: DepartmentDashb
                         );
                       })}
                       <td className="px-3 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          app.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                          app.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                          app.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {app.status === 'pending' ? 'قيد المراجعة' :
-                           app.status === 'accepted' ? 'مقبول' :
-                           app.status === 'rejected' ? 'مرفوض' : 'تمت المراجعة'}
-                        </span>
+                        <select
+                          value={app.status}
+                          onChange={(e) => handleStatusChange(app.id!, e.target.value as 'pending' | 'accepted' | 'rejected')}
+                          className={`px-2 py-1 text-xs font-semibold rounded-full border-0 cursor-pointer focus:ring-2 focus:ring-offset-1 ${
+                            app.status === 'pending'  ? 'bg-orange-100 text-orange-800 focus:ring-orange-400' :
+                            app.status === 'accepted' ? 'bg-green-100 text-green-800 focus:ring-green-400' :
+                            app.status === 'rejected' ? 'bg-red-100 text-red-800 focus:ring-red-400' :
+                            'bg-blue-100 text-blue-800 focus:ring-blue-400'
+                          }`}
+                          dir="rtl"
+                        >
+                          <option value="pending">⏳ قيد المراجعة</option>
+                          <option value="accepted">✅ مقبول</option>
+                          <option value="rejected">❌ مرفوض</option>
+                        </select>
                       </td>
                     </tr>
                   ))}
