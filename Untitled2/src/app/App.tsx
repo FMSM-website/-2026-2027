@@ -54,8 +54,8 @@ function AppContent() {
     return () => clearInterval(interval);
   }, []);
 
-  // المقاعد المتاحة = الإجمالي - المقبولين
-  const totalSeats = Math.max(0, totalSeatsOriginal - acceptedCount);
+  // المقاعد المتاحة = الإجمالي - جميع الطلبات المقدمة (معلقة + مقبولة)
+  const totalSeats = Math.max(0, totalSeatsOriginal - totalApplicants);
 
   // الأيام المتبقية الحقيقية من اليوم حتى 15 جوان 2026
   const deadline = new Date('2026-06-15T23:59:59');
