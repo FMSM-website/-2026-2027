@@ -1,64 +1,47 @@
 // ============================================================
-// firebaseConfig.tsx — Firebase REST API
-// ============================================================
-//
-// 📋 قواعد Firebase التي يجب تطبيقها في Firebase Console:
-//   Database → Rules → انسخ هذا:
-//
-//   {
-//     "rules": {
-//       ".read": true,
-//       ".write": true
-//     }
-//   }
-//
-//   ⚠️  هذا مؤقت لضمان عمل المنصة. للحماية المتقدمة لاحقاً:
-//   استخدم Firebase Authentication وربط الأدمن بحساب Google.
-//
+// firebaseConfig.tsx — الاتصال عبر Vercel لتفادي الحظر
 // ============================================================
 
-const DB_URL = "https://university-master-portal-default-rtdb.firebaseio.com";
-
-// ── حفظ بيانات جديدة ────────────────────────────────────────
+// ── حفظ بيانات تسجيل جديدة ────────────────────────────────────────
 export async function pushToFirebase(path: string, data: object): Promise<string> {
-  const res = await fetch(`${DB_URL}/${path}.json`, {
+  const res = await fetch(`/api/firebase?path=${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error(`Firebase POST error: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw new Error(`Proxy POST error: ${res.status}`);
   const result = await res.json();
   return result.name;
 }
 
-// ── جلب كل البيانات من مسار معين ───────────────────────────
+// ── جلب البيانات الحقيقية من المسار ───────────────────────────
 export async function getFromFirebase(path: string): Promise<Record<string, any> | null> {
-  const res = await fetch(`${DB_URL}/${path}.json`);
-  if (!res.ok) throw new Error(`Firebase GET error: ${res.status} ${res.statusText}`);
+  const res = await fetch(`/api/firebase?path=${path}`);
+  if (!res.ok) throw new Error(`Proxy GET error: ${res.status}`);
   return res.json();
 }
 
-// ── تحديث حقل معين ──────────────────────────────────────────
+// ── تحديث حالة طلب أو حقل معين ──────────────────────────────────────────
 export async function updateInFirebase(path: string, data: object): Promise<void> {
-  const res = await fetch(`${DB_URL}/${path}.json`, {
+  const res = await fetch(`/api/firebase?path=${path}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error(`Firebase PATCH error: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw new Error(`Proxy PATCH error: ${res.status}`);
 }
 
 // ── حذف عنصر ────────────────────────────────────────────────
 export async function deleteFromFirebase(path: string): Promise<void> {
-  const res = await fetch(`${DB_URL}/${path}.json`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`Firebase DELETE error: ${res.status} ${res.statusText}`);
+  const res = await fetch(`/api/firebase?path=${path}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Proxy DELETE error: ${res.status}`);
 }
 
 // ════════════════════════════════════════════════════════════
-// دوال موحّدة — كلها تقرأ وتكتب من Firebase مباشرة
+// دوال موحّدة — كلها تقرأ وتكتب بأمان من خلال سيرفر Vercel
 // ════════════════════════════════════════════════════════════
 
-// ── جلب جميع الطلبات من جميع الأقسام (للأدمن الرئيسي) ─────
+// ── جلب جميع الطلاب المسجلين بالكامل ─────
 export async function getAllApplications(): Promise<any[]> {
   try {
     const data = await getFromFirebase("applications");
@@ -83,7 +66,7 @@ export async function getAllApplications(): Promise<any[]> {
   }
 }
 
-// ── تحديث حالة طلب في Firebase ──────────────────────────────
+// ── تحديث حالة الملف (مقبول / مرفوض / معلق) ──────────────────────────────
 export async function updateApplicationStatus(
   departmentId: string,
   appId: string,
@@ -92,7 +75,7 @@ export async function updateApplicationStatus(
   await updateInFirebase(`applications/${departmentId}/${appId}`, { status });
 }
 
-// ── حذف طلب من Firebase ─────────────────────────────────────
+// ── حذف طلب نهائياً من النظام ─────────────────────────────────────
 export async function deleteApplication(
   departmentId: string,
   appId: string
