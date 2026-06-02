@@ -34,7 +34,7 @@ export default function Timeline() {
       titleKey: 'registrationCloses',
       dateKey: 'registrationClosesDate',
       descriptionKey: 'registrationClosesDesc',
-      status: computeStatus(new Date('2026-06-05'), new Date('2026-06-07T23:59:59')),
+      status: computeStatus(new Date('2026-06-12'), new Date('2026-06-07T23:59:59')),
       icon: FileCheck,
     },
     {
@@ -43,7 +43,7 @@ export default function Timeline() {
       titleKey: 'initialResultsAndAppeals',
       dateKey: 'initialResultsAndAppealsDate',
       descriptionKey: 'initialResultsAndAppealsDesc',
-      status: computeStatus(new Date('2026-06-08'), new Date('2026-06-14T23:59:59')),
+      status: computeStatus(new Date('2026-06-14'), new Date('2026-06-14T23:59:59')),
       icon: Scale,
     },
     {
@@ -51,7 +51,7 @@ export default function Timeline() {
       titleKey: 'finalResults',
       dateKey: 'finalResultsDate',
       descriptionKey: 'finalResultsDesc',
-      status: computeStatus(new Date('2026-06-15')),
+      status: computeStatus(new Date('2026-06-18')),
       icon: Award,
     },
   ];
