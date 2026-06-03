@@ -34,7 +34,7 @@ export default function Timeline() {
       titleKey: 'registrationCloses',
       dateKey: 'registrationClosesDate',
       descriptionKey: 'registrationClosesDesc',
-      status: computeStatus(new Date('2026-06-12'), new Date('2026-06-07T23:59:59')),
+      status: computeStatus(new Date('2026-06-11'), new Date('2026-06-07T23:59:59')),
       icon: FileCheck,
     },
     {
